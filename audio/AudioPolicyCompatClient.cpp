@@ -1,6 +1,5 @@
 /*
  * Copyright (C) 2011 The Android Open Source Project
- * Copyright (c) 2013, The Linux Foundation. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,11 +41,12 @@ audio_io_handle_t AudioPolicyCompatClient::openOutput(audio_module_handle_t modu
                                                       audio_format_t *pFormat,
                                                       audio_channel_mask_t *pChannelMask,
                                                       uint32_t *pLatencyMs,
-                                                      audio_output_flags_t flags)
+                                                      audio_output_flags_t flags,
+                                                      const audio_offload_info_t *offloadInfo)
 {
     return mServiceOps->open_output_on_module(mService, module, pDevices, pSamplingRate,
                                               pFormat, pChannelMask, pLatencyMs,
-                                              flags);
+                                              flags, offloadInfo);
 }
 
 audio_io_handle_t AudioPolicyCompatClient::openDuplicateOutput(audio_io_handle_t output1,
@@ -74,6 +74,21 @@ audio_io_handle_t AudioPolicyCompatClient::openInput(audio_module_handle_t modul
                                                      audio_devices_t *pDevices,
                                                      uint32_t *pSamplingRate,
                                                      audio_format_t *pFormat,
+#ifdef STE_AUDIO
+                                                     audio_channel_mask_t *pChannelMask,
+                                                     audio_input_clients *pInputClientId)
+{
+    return mServiceOps->open_input_on_module(mService, module, pDevices,
+                                             pSamplingRate, pFormat, pChannelMask, pInputClientId);
+}
+
+status_t AudioPolicyCompatClient::closeInput(audio_io_handle_t input,
+                                            audio_input_clients *inputClientId)
+{
+    return mServiceOps->close_input(mService, input, inputClientId);
+}
+
+#else
                                                      audio_channel_mask_t *pChannelMask)
 {
     return mServiceOps->open_input_on_module(mService, module, pDevices,
@@ -84,6 +99,7 @@ status_t AudioPolicyCompatClient::closeInput(audio_io_handle_t input)
 {
     return mServiceOps->close_input(mService, input);
 }
+#endif
 
 status_t AudioPolicyCompatClient::setStreamOutput(AudioSystem::stream_type stream,
                                              audio_io_handle_t output)
@@ -127,14 +143,6 @@ status_t AudioPolicyCompatClient::setStreamVolume(
     return mServiceOps->set_stream_volume(mService, (audio_stream_type_t)stream,
                                           volume, output, delayMs);
 }
-
-#ifdef QCOM_FM_ENABLED
-status_t AudioPolicyCompatClient::setFmVolume(float volume,
-                                              int delayMs)
-{
-    return mServiceOps->set_fm_volume(mService, volume, delayMs);
-}
-#endif
 
 status_t AudioPolicyCompatClient::startTone(ToneGenerator::tone_type tone,
                                        AudioSystem::stream_type stream)

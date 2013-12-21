@@ -1,6 +1,5 @@
 /*
  * Copyright (C) 2011 The Android Open Source Project
- * Copyright (c) 2013, The Linux Foundation. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,7 +43,8 @@ public:
                                          audio_format_t *pFormat,
                                          audio_channel_mask_t *pChannelMask,
                                          uint32_t *pLatencyMs,
-                                         audio_output_flags_t flags);
+                                         audio_output_flags_t flags,
+                                         const audio_offload_info_t *offloadInfo);
     virtual audio_io_handle_t openDuplicateOutput(audio_io_handle_t output1,
                                                   audio_io_handle_t output2);
     virtual status_t closeOutput(audio_io_handle_t output);
@@ -54,8 +54,15 @@ public:
                                         audio_devices_t *pDevices,
                                         uint32_t *pSamplingRate,
                                         audio_format_t *pFormat,
+#ifdef STE_AUDIO
+                                        audio_channel_mask_t *pChannelMask,
+                                        audio_input_clients *pInputClientId = NULL);
+    virtual status_t closeInput(audio_io_handle_t input,
+                                audio_input_clients *inputClientId = NULL);
+#else
                                         audio_channel_mask_t *pChannelMask);
     virtual status_t closeInput(audio_io_handle_t input);
+#endif
     virtual status_t setStreamOutput(AudioSystem::stream_type stream, audio_io_handle_t output);
     virtual status_t moveEffects(int session,
                                  audio_io_handle_t srcOutput,
@@ -69,9 +76,6 @@ public:
                                      float volume,
                                      audio_io_handle_t output,
                                      int delayMs = 0);
-#ifdef QCOM_FM_ENABLED
-    virtual status_t setFmVolume(float volume, int delayMs = 0);
-#endif
     virtual status_t startTone(ToneGenerator::tone_type tone, AudioSystem::stream_type stream);
     virtual status_t stopTone();
     virtual status_t setVoiceVolume(float volume, int delayMs = 0);
